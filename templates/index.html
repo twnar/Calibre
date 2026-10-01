@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calibre: predictions that know when they're unsure</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Calibre</h1>
+      <p class="lede">Give it a table of data. It trains a model, then wraps every prediction in a range or a short list of answers that is proven, on rows the model never saw, to contain the truth as often as you asked.</p>
+    </header>
+
+    <section class="panel" aria-labelledby="setup-title">
+      <h2 id="setup-title">Start with some data</h2>
+
+      <div class="chips" role="radiogroup" aria-label="Example datasets">
+        {% for ex in examples %}
+        <button type="button" class="chip" role="radio" aria-checked="false" data-example="{{ ex.id }}" title="{{ ex.note }}">{{ ex.label }}</button>
+        {% endfor %}
+      </div>
+
+      <label class="drop" id="drop" for="file">
+        <input type="file" id="file" accept=".csv,.tsv,.txt,text/csv">
+        <span class="drop-main" id="drop-main">Or drop your own CSV here</span>
+        <span class="drop-sub" id="drop-sub">Up to 20 MB. One column is what you want to predict, the rest are inputs.</span>
+      </label>
+
+      <div class="settings" id="settings" hidden>
+        <div class="field">
+          <label for="target">What should it predict?</label>
+          <select id="target"></select>
+        </div>
+        <div class="field">
+          <label for="confidence">Confidence: <output id="confidence-out">90%</output></label>
+          <input type="range" id="confidence" min="50" max="99" value="90" step="1">
+          <p class="hint">At 90%, the true answer should fall inside the prediction 9 times out of 10.</p>
+        </div>
+        <button type="button" class="primary" id="run">Run analysis</button>
+      </div>
+
+      <p class="error" id="error" role="alert" hidden></p>
+    </section>
+
+    <section id="results" class="results" hidden aria-live="polite">
+      <h2 class="headline" id="headline"></h2>
+      <p class="subline" id="subline"></p>
+
+      <div class="pills" id="pills"></div>
+
+      <div class="panel chart-panel">
+        <h3>Does it keep its promise?</h3>
+        <p class="hint" id="chart-hint"></p>
+        <div id="chart" class="chart"></div>
+        <div class="legend" id="legend"></div>
+      </div>
+
+      <div class="panel">
+        <h3>First rows from the held-out test set</h3>
+        <div class="table-wrap"><table id="samples"></table></div>
+      </div>
+
+      <ul class="notes" id="notes"></ul>
+    </section>
+
+    <details class="how">
+      <summary>How it works</summary>
+      <div class="how-body">
+        <p>Most models give you one answer and no sense of how much to trust it. Calibre uses <strong>split conformal prediction</strong>, a method from statistics that fixes this without assuming anything about the model.</p>
+        <p>Your rows are split three ways: half to train a random forest, a quarter to <em>calibrate</em>, and a quarter held back as a final exam. On the calibration rows it measures how wrong the model tends to be, and uses that to size the ranges (for numbers) or the lists of possible classes (for categories). The exam rows, which nothing has seen, then check whether the promise held.</p>
+        <p>The guarantee needs one thing: the data you predict on should look like the data you calibrated on. If your world changes, re-run it.</p>
+        <p class="hint">Reference: Angelopoulos and Bates, <em>A Gentle Introduction to Conformal Prediction and Distribution-Free Uncertainty Quantification</em> (2021).</p>
+      </div>
+    </details>
+  </main>
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
