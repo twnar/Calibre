@@ -24,7 +24,7 @@ The model and the data are the same. Just the technique to estimate the uncertai
 You need Python 3.10 or above.
 
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/twnar/Calibre>
 cd calibre
 python -m venv .venv
 source .venv/bin/activate        # On Windows: .venv\Scripts\activate
